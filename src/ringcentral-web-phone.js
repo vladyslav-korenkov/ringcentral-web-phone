@@ -166,10 +166,12 @@
 
         this.userAgent.__invite = this.userAgent.invite;
         this.userAgent.invite = invite;
+        this.userAgent.sendMessage = sendMessage;
 
         this.userAgent.on('invite', function(session) {
             this.userAgent.audioHelper.playIncoming(true);
             patchSession(session);
+            session.sendReceiveConfirm();
         }.bind(this));
 
         this.userAgent.audioHelper = new AudioHelper(options.audioHelper);
@@ -207,6 +209,9 @@
         session.receiveInviteResponse = receiveInviteResponse;
         session.receiveResponse = receiveResponse;
         session.accept = accept;
+        session.sendSessionMessage = sendSessionMessage;
+        session.sendReceiveConfirm = sendReceiveConfirm;
+        session.toVoicemail = toVoicemail;
         session.hold = hold;
         session.unhold = unhold;
         session.dtmf = dtmf;
@@ -232,6 +237,22 @@
         session.on('replaced', stopPlaying);
         session.mediaHandler.on('iceConnectionCompleted', stopPlaying);
         session.mediaHandler.on('iceConnectionFailed', stopPlaying);
+
+        //parse RC headers
+        var prc = session.request.headers['P-Rc'];
+        if (prc && prc.length) {
+            var raw_invite_msg = prc[0].raw;
+            var parser = new DOMParser();
+            var xmlDoc = parser.parseFromString(raw_invite_msg, "text/xml");
+            var Hdr_node = xmlDoc.getElementsByTagName("Hdr")[0];
+
+            session.rc_headers = {
+                sid: Hdr_node.getAttribute('SID'),
+                request: Hdr_node.getAttribute('Req'),
+                from: Hdr_node.getAttribute('From'),
+                to: Hdr_node.getAttribute('To')
+            };
+        }
 
         function stopPlaying() {
             session.ua.audioHelper.playOutgoing(false);
@@ -337,6 +358,37 @@
         }
         return this.__sendRequest(type, config);
     }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    function sendMessage(to, options) {
+        var msg_body =
+`<Msg>
+    <Hdr
+        SID="${options.sid}"
+        Req="${options.request}"
+        From="${options.from}"
+        To="${options.to}"
+        Cmd="${options.cmd}"/>
+        <Bdy
+            Cln="${this.sipInfo.authorizationId}"/>
+</Msg>`;
+
+        var userAgent = this;
+
+        return new Promise(function(resolve, reject) {
+            var message = userAgent.message(to, msg_body, {
+                contentType: 'x-rc/agent'
+            });
+
+            message.once('accepted', function(response, cause) {
+                resolve();
+            });
+            message.once('failed', function(response, cause) {
+                reject(new Error(cause));
+            });
+        });
+    };
 
     /*--------------------------------------------------------------------------------------------------------------------*/
 
@@ -557,6 +609,45 @@
 
         });
 
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @return {Promise}
+     */
+    function sendSessionMessage(options) {
+        var to = this.rc_headers.from;
+
+        extend(options, {
+            sid: this.rc_headers.sid,
+            request: this.rc_headers.request,
+            from: this.rc_headers.to,
+            to: to
+        });
+
+        return this.ua.sendMessage(to, options);
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @return {Promise}
+     */
+    function sendReceiveConfirm() {
+        return this.sendSessionMessage({ cmd: 17 });
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @return {Promise}
+     */
+    function toVoicemail() {
+        return this.sendSessionMessage({ cmd: 11 });
     }
 
     /*--------------------------------------------------------------------------------------------------------------------*/

@@ -108,7 +108,7 @@ $(function() {
         webPhone.userAgent.on('registered', function() { console.log('UA Registered'); });
         webPhone.userAgent.on('unregistered', function() { console.log('UA Unregistered'); });
         webPhone.userAgent.on('registrationFailed', function() { console.log('UA RegistrationFailed', arguments); });
-        webPhone.userAgent.on('message', function() { console.log('UA Message', arguments); });
+        webPhone.userAgent.on('message', onMessage);
 
         return webPhone;
 
@@ -144,6 +144,16 @@ $(function() {
             session.reject();
         });
 
+        $modal.find('.to-voicemail').on('click', function() {
+            session.toVoicemail()
+                .then(function() {
+                    console.log('Sent to voicemail');
+                })
+                .catch(function(cause) {
+                    console.error('Sent to voicemail failed due to ' + cause);
+                });
+        });
+
         $modal.find('.forward-form').on('submit', function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -159,6 +169,11 @@ $(function() {
             $modal.modal('hide');
         });
 
+    }
+
+    function onMessage(message) {
+        console.log('UA Message', arguments);
+        alert(message.body);
     }
 
     function onAccepted(session) {
