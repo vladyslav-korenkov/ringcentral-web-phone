@@ -375,11 +375,13 @@
 </Msg>`;
 
         var userAgent = this;
+        sipOptions = {};
+        sipOptions.contentType = 'x-rc/agent'
+        sipOptions.extraHeaders = [];
+        sipOptions.extraHeaders.push('Contact: ' + this.contact);
 
         return new Promise(function(resolve, reject) {
-            var message = userAgent.message(to, msg_body, {
-                contentType: 'x-rc/agent'
-            });
+            var message = userAgent.message(to, msg_body, sipOptions);
 
             message.once('accepted', function(response, cause) {
                 resolve();
