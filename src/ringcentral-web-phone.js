@@ -212,6 +212,7 @@
         session.sendSessionMessage = sendSessionMessage;
         session.sendReceiveConfirm = sendReceiveConfirm;
         session.toVoicemail = toVoicemail;
+        session.preCallReply = preCallReply;
         session.hold = hold;
         session.unhold = unhold;
         session.dtmf = dtmf;
@@ -362,6 +363,8 @@
     /*--------------------------------------------------------------------------------------------------------------------*/
 
     function sendMessage(to, options) {
+        options.body = options.body || '';
+
         var msg_body =
 `<Msg>
     <Hdr
@@ -371,7 +374,7 @@
         To="${options.to}"
         Cmd="${options.cmd}"/>
         <Bdy
-            Cln="${this.sipInfo.authorizationId}"/>
+            Cln="${this.sipInfo.authorizationId}" ${options.body}/>
 </Msg>`;
 
         var userAgent = this;
@@ -650,6 +653,31 @@
      */
     function toVoicemail() {
         return this.sendSessionMessage({ cmd: 11 });
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @param {object} replyOptions
+     * @return {Promise}
+     */
+    function preCallReply(replyOptions) {
+        // start reply
+        this.sendSessionMessage({ cmd: 13 });
+
+        var body = 'RepTp="'+ replyOptions.replyType +'"';
+
+        if (replyOptions.replyType === 0) {
+            body += ' Bdy="'+ replyOptions.replyText +'"';
+        }
+        else if (replyOptions.replyType === 1){
+            body += ' Vl="'+ replyOptions.timeValue +'"';
+            body += ' Units="'+ replyOptions.timeUnits +'"';
+            body += ' Dir="'+ replyOptions.callbackDirection +'"';
+        }
+
+        return this.sendSessionMessage({ cmd: 14, body: body });
     }
 
     /*--------------------------------------------------------------------------------------------------------------------*/

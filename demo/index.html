@@ -57,6 +57,31 @@
                     <button class="btn btn-success answer">Answer</button>
                     <button class="btn btn-danger decline">Decline</button>
                     <button class="btn btn-danger to-voicemail">To Voicemail</button>
+
+                    <hr/>
+
+                    <form class="form-inline reply-form">
+                        <div class="form-group">
+                            <select class="form-control reply-type">
+                                <option value="0">Custom</option>
+                                <option value="1">Call back</option>
+                                <option value="2">On my way</option>
+                                <option value="3">On other line</option>
+                            </select>
+                            <input class="form-control reply-time" value="0"/>
+                            <select class="form-control reply-time-unit">
+                                <option value="0">minute</option>
+                                <option value="1">hour</option>
+                                <option value="2">year</option>
+                            </select>
+                            <select class="form-control reply-direction">
+                                <option value="0">call you back</option>
+                                <option value="1">call me back</option>
+                            </select>
+                            <input class="form-control reply-text"/>
+                            <button class="btn btn-success reply-with-message" type="submit">Reply with message</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>

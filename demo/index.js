@@ -131,6 +131,46 @@ $(function() {
             }
         };
 
+        $modal.find('.reply-type').val('0');
+        $modal.find('.reply-text').show();
+        $modal.find('.reply-time').hide();
+        $modal.find('.reply-time-unit').hide();
+        $modal.find('.reply-direction').hide();
+
+        $modal.find('.reply-type').on('change', function() {
+            if ($modal.find('.reply-type').val() === '1') {
+                $modal.find('.reply-time').show();
+                $modal.find('.reply-time-unit').show();
+                $modal.find('.reply-direction').show();
+                $modal.find('.reply-text').hide();
+            }
+            else {
+                if ($modal.find('.reply-type').val() === '0') {
+                    $modal.find('.reply-text').show();
+                }
+                else {
+                    $modal.find('.reply-text').hide();
+                }
+
+                $modal.find('.reply-time').hide();
+                $modal.find('.reply-time-unit').hide();
+                $modal.find('.reply-direction').hide();
+            }
+        });
+
+        $modal.find('.reply-form').on('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            session.preCallReply({
+                replyType: +$modal.find('.reply-type').val(),
+                replyText: $modal.find('.reply-text').val(),
+                timeValue: +$modal.find('.reply-time').val(),
+                timeUnits: +$modal.find('.reply-time-unit').val(),
+                callbackDirection: +$modal.find('.reply-direction').val()
+            });
+        });
+
         $modal.find('.answer').on('click', function() {
             session.accept(acceptOptions)
                 .then(function() {
