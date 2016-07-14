@@ -166,6 +166,7 @@
 
         this.userAgent.__invite = this.userAgent.invite;
         this.userAgent.invite = invite;
+        this.userAgent.createRcMessage = createRcMessage;
         this.userAgent.sendMessage = sendMessage;
 
         this.userAgent.on('invite', function(session) {
@@ -209,10 +210,13 @@
         session.receiveInviteResponse = receiveInviteResponse;
         session.receiveResponse = receiveResponse;
         session.accept = accept;
+        session.createSessionMessage = createSessionMessage;
         session.sendSessionMessage = sendSessionMessage;
         session.sendReceiveConfirm = sendReceiveConfirm;
         session.toVoicemail = toVoicemail;
         session.preCallReply = preCallReply;
+        session.startScreenToVoicemail = startScreenToVoicemail;
+        session.stopScreenToVoicemail = stopScreenToVoicemail;
         session.hold = hold;
         session.unhold = unhold;
         session.dtmf = dtmf;
@@ -362,21 +366,17 @@
 
     /*--------------------------------------------------------------------------------------------------------------------*/
 
-    function sendMessage(to, options) {
+    function createRcMessage(options) {
         options.body = options.body || '';
 
-        var msg_body =
-`<Msg>
-    <Hdr
-        SID="${options.sid}"
-        Req="${options.request}"
-        From="${options.from}"
-        To="${options.to}"
-        Cmd="${options.cmd}"/>
-        <Bdy
-            Cln="${this.sipInfo.authorizationId}" ${options.body}/>
-</Msg>`;
+        var msg_body =`<Msg><Hdr SID="${options.sid}" Req="${options.request}" From="${options.from}" To="${options.to}" Cmd="${options.cmd}"/> <Bdy Cln="${this.sipInfo.authorizationId}" ${options.body}/></Msg>`;
 
+        return msg_body;
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    function sendMessage(to, messageData) {
         var userAgent = this;
         sipOptions = {};
         sipOptions.contentType = 'x-rc/agent'
@@ -384,7 +384,7 @@
         sipOptions.extraHeaders.push('Contact: ' + this.contact);
 
         return new Promise(function(resolve, reject) {
-            var message = userAgent.message(to, msg_body, sipOptions);
+            var message = userAgent.message(to, messageData, sipOptions);
 
             message.once('accepted', function(response, cause) {
                 resolve();
@@ -622,17 +622,27 @@
      * @this {SIP.Session}
      * @return {Promise}
      */
-    function sendSessionMessage(options) {
-        var to = this.rc_headers.from;
-
+    function createSessionMessage(options) {
         extend(options, {
             sid: this.rc_headers.sid,
             request: this.rc_headers.request,
             from: this.rc_headers.to,
-            to: to
+            to: this.rc_headers.from
         });
 
-        return this.ua.sendMessage(to, options);
+        return this.ua.createRcMessage(options);
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @return {Promise}
+     */
+    function sendSessionMessage(options) {
+        var to = this.rc_headers.from;
+
+        return this.ua.sendMessage(to, this.createSessionMessage(options));
     }
 
     /*--------------------------------------------------------------------------------------------------------------------*/
@@ -678,6 +688,32 @@
         }
 
         return this.sendSessionMessage({ cmd: 14, body: body });
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @param {object} options
+     * @return {Promise}
+     */
+    function startScreenToVoicemail(options) {
+        var acceptOtions = options || {};
+        acceptOtions.extraHeaders = [];
+        acceptOtions.extraHeaders.push('P-rcid: ' + this.ua.sipInfo.authorizationId);
+        acceptOtions.extraHeaders.push('P-rc: ' + this.createSessionMessage({ cmd: 26 }));
+        return this.accept(acceptOtions);
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
+     * @param {object} options
+     * @return {Promise}
+     */
+    function stopScreenToVoicemail() {
+        return this.sendSessionMessage({ cmd: 27 });
     }
 
     /*--------------------------------------------------------------------------------------------------------------------*/

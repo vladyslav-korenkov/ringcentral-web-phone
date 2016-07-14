@@ -194,6 +194,33 @@ $(function() {
                 });
         });
 
+        $modal.find('.start-screen-to-voicemail').on('click', function() {
+            session.startScreenToVoicemail()
+                .then(function() {
+                    console.log('Start screen to voicemail');
+
+                    $modal.find('.start-screen-to-voicemail').hide();
+                    $modal.find('.stop-screen-to-voicemail').show();
+                })
+                .catch(function(cause) {
+                    console.error('Screen to voicemail failed due to ' + cause);
+                });
+        });
+
+        $modal.find('.stop-screen-to-voicemail').hide();
+        $modal.find('.stop-screen-to-voicemail').on('click', function() {
+            session.stopScreenToVoicemail()
+                .then(function() {
+                    console.log('Stop screen to voicemail');
+                })
+                .catch(function(cause) {
+                    console.error('Stop screen to voicemail failed due to ' + cause);
+                });
+
+            $modal.modal('hide');
+            onAccepted(session);
+        });
+
         $modal.find('.forward-form').on('submit', function(e) {
             e.preventDefault();
             e.stopPropagation();
