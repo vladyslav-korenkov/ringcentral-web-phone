@@ -213,8 +213,9 @@
         session.createSessionMessage = createSessionMessage;
         session.sendSessionMessage = sendSessionMessage;
         session.sendReceiveConfirm = sendReceiveConfirm;
+        session.forwardTo = forwardTo;
         session.toVoicemail = toVoicemail;
-        session.startReplyWithMessage = startReplyWithMessage;
+        session.startReply = startReply;
         session.replyWithMessage = replyWithMessage;
         session.startScreenToVoicemail = startScreenToVoicemail;
         session.stopScreenToVoicemail = stopScreenToVoicemail;
@@ -660,6 +661,19 @@
 
     /**
      * @this {SIP.Session}
+     * @param {string} target
+     * @return {Promise}
+     */
+    function forwardTo(target) {
+        var body = 'Phn="' + target + '" FwdDly="0" PhnTp="3"';
+        return this.sendSessionMessage({ cmd: 10, body: body });
+    }
+
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
      * @return {Promise}
      */
     function toVoicemail() {
@@ -672,7 +686,7 @@
      * @this {SIP.Session}
      * @return {Promise}
      */
-    function startReplyWithMessage() {
+    function startReply() {
         return this.sendSessionMessage({ cmd: 13 });
     }
 

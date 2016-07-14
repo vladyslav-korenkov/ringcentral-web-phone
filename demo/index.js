@@ -138,12 +138,16 @@ $(function() {
         $modal.find('.reply-direction').hide();
 
         $modal.find('.reply-form').hide();
+        $modal.find('.forward-msg-form').hide();
 
         $modal.find('.start-reply').on('click', function() {
-            session.startReplyWithMessage()
+            session.startReply()
                 .then(function() { console.log('Start reply succeeded');})
                 .catch(function(e) { console.error('Start reply failed', e.stack || e); });
+
             $modal.find('.reply-form').show();
+            $modal.find('.forward-msg-form').show();
+
             $modal.find('.start-reply').hide();
         });
 
@@ -240,6 +244,17 @@ $(function() {
                     $modal.modal('hide');
                 })
                 .catch(function(e) { console.error('Forward failed', e.stack || e); });
+        });
+
+        $modal.find('.forward-msg-form').on('submit', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            session.forwardTo($modal.find('input[name=forwardMSG]').val().trim())
+                .then(function() { console.log('Forwarded'); })
+                .catch(function(e) { console.error('Forward failed', e.stack || e); });
+
+            $modal.modal('hide');
         });
 
         session.on('rejected', function() {

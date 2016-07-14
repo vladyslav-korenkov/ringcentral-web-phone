@@ -52,17 +52,14 @@
                         </div>
                         <button class="btn btn-primary" type="submit">Forward</button>
                     </form>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn btn-success answer">Answer</button>
-                    <button class="btn btn-danger decline">Decline</button>
-                    <button class="btn btn-danger to-voicemail">To Voicemail</button>
-                    <button class="btn btn-danger start-screen-to-voicemail">Start screen to Voicemail</button>
-                    <button class="btn btn-danger stop-screen-to-voicemail">Stop screen to Voicemail</button>
+                    <form class="form-inline forward-msg-form">
+                        <div class="form-group">
+                            <label>Forward To (using SIP MESSAGE):</label>
+                            <input type="text" class="form-control" name="forwardMSG" placeholder="">
+                        </div>
+                        <button class="btn btn-primary" type="submit">Forward</button>
+                    </form>
                     <button class="btn btn-danger start-reply">Start reply</button>
-
-                    <hr/>
-
                     <form class="form-inline reply-form">
                         <div class="form-group">
                             <select class="form-control reply-type">
@@ -85,6 +82,13 @@
                             <button class="btn btn-success reply-with-message" type="submit">Reply with message</button>
                         </div>
                     </form>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success answer">Answer</button>
+                    <button class="btn btn-danger decline">Decline</button>
+                    <button class="btn btn-danger to-voicemail">To Voicemail</button>
+                    <button class="btn btn-danger start-screen-to-voicemail">Start screen to Voicemail</button>
+                    <button class="btn btn-danger stop-screen-to-voicemail">Stop screen to Voicemail</button>
                 </div>
             </div>
         </div>
