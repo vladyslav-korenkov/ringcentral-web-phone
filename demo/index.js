@@ -137,6 +137,16 @@ $(function() {
         $modal.find('.reply-time-unit').hide();
         $modal.find('.reply-direction').hide();
 
+        $modal.find('.reply-form').hide();
+
+        $modal.find('.start-reply').on('click', function() {
+            session.startReplyWithMessage()
+                .then(function() { console.log('Start reply succeeded');})
+                .catch(function(e) { console.error('Start reply failed', e.stack || e); });
+            $modal.find('.reply-form').show();
+            $modal.find('.start-reply').hide();
+        });
+
         $modal.find('.reply-type').on('change', function() {
             if ($modal.find('.reply-type').val() === '1') {
                 $modal.find('.reply-time').show();
@@ -162,7 +172,7 @@ $(function() {
             e.preventDefault();
             e.stopPropagation();
 
-            session.preCallReply({
+            session.replyWithMessage({
                 replyType: +$modal.find('.reply-type').val(),
                 replyText: $modal.find('.reply-text').val(),
                 timeValue: +$modal.find('.reply-time').val(),
@@ -240,7 +250,6 @@ $(function() {
 
     function onMessage(message) {
         console.log('UA Message', arguments);
-        alert(message.body);
     }
 
     function onAccepted(session) {

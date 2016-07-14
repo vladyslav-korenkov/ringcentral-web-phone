@@ -214,7 +214,8 @@
         session.sendSessionMessage = sendSessionMessage;
         session.sendReceiveConfirm = sendReceiveConfirm;
         session.toVoicemail = toVoicemail;
-        session.preCallReply = preCallReply;
+        session.startReplyWithMessage = startReplyWithMessage;
+        session.replyWithMessage = replyWithMessage;
         session.startScreenToVoicemail = startScreenToVoicemail;
         session.stopScreenToVoicemail = stopScreenToVoicemail;
         session.hold = hold;
@@ -669,13 +670,20 @@
 
     /**
      * @this {SIP.Session}
+     * @return {Promise}
+     */
+    function startReplyWithMessage() {
+        return this.sendSessionMessage({ cmd: 13 });
+    }
+
+    /*--------------------------------------------------------------------------------------------------------------------*/
+
+    /**
+     * @this {SIP.Session}
      * @param {object} replyOptions
      * @return {Promise}
      */
-    function preCallReply(replyOptions) {
-        // start reply
-        this.sendSessionMessage({ cmd: 13 });
-
+    function replyWithMessage(replyOptions) {
         var body = 'RepTp="'+ replyOptions.replyType +'"';
 
         if (replyOptions.replyType === 0) {
